@@ -24,7 +24,8 @@ func handleMessage(message []byte, suffix, messageDir string) {
 
 	buff.Reset()
 	buff.WriteString(messageDir)
-	buff.WriteString("/")
+	buff.WriteByte(os.PathSeparator)
+	// buff.WriteString("/")
 	buff.WriteString(uid.String())
 	buff.WriteString("_")
 	buff.WriteString(strtime)
@@ -33,7 +34,8 @@ func handleMessage(message []byte, suffix, messageDir string) {
 
 	buff.Reset()
 	buff.WriteString(messageDir)
-	buff.WriteString("/")
+	buff.WriteByte(os.PathSeparator)
+	// buff.WriteString("/")
 	buff.WriteString(uid.String())
 	buff.WriteString("_")
 	buff.WriteString(strtime)
