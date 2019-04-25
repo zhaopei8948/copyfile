@@ -9,11 +9,12 @@ import (
 	"strconv"
 	"time"
 	"path"
+	"runtime"
 )
 
-func handleMessage(message []byte, suffix, messageDir string) {
+func handleMessage(message []byte, suffix, messageDir string, result chan<- int) {
 	buff := bytes.Buffer{}
-	uid, _ := uuid.NewV4()
+	uid := uuid.NewV4()
 	nowt := time.Now()
 	strtime := nowt.Format("20060102150405")
 	nano := nowt.UnixNano() % nowt.Unix()
@@ -60,6 +61,7 @@ func handleMessage(message []byte, suffix, messageDir string) {
 	} else {
 		log.Printf("success create file %s\n", finalFileName)
 	}
+	result<- 1
 }
 
 func readFileToMemory(srcFile string) []byte {
@@ -68,7 +70,7 @@ func readFileToMemory(srcFile string) []byte {
 		log.Fatal(err)
 	}
 
-	log.Printf("File contents: %s", content)
+	// log.Printf("File contents: %s", content)
 	return content
 }
 
@@ -82,6 +84,9 @@ func main() {
 	suffix := path.Ext(arguments[1])
 	content := readFileToMemory(arguments[1])
 	count, err := strconv.Atoi(arguments[3])
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	result := make(chan int, count)
+
 	if err != nil {
 		log.Println("count error", err)
 		return
@@ -93,6 +98,11 @@ func main() {
 	}
 
 	for i := 0; i < count; i++ {
-		handleMessage(content, suffix, arguments[2])
+		go handleMessage(content, suffix, arguments[2], result)
+	}
+
+	for i := 0; i < count; i++ {
+		<-result
+		log.Printf("%d have been completed.", i + 1)
 	}
 }
